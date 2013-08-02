@@ -27,6 +27,10 @@ class Node
     nil
   end
 
+  def text_content
+    nil
+  end
+
   attr_reader :name
   attr_reader :attributes
 end
@@ -45,8 +49,12 @@ class OnlyContentNode < Node
     new_node.content = content.dup
     new_node
   end
-  
-  attr_accessor :content
+
+  def text_content
+    @content
+  end
+
+  attr_writer :content
 end
 
 class CommentNode < Node
@@ -65,8 +73,12 @@ class CommentNode < Node
       nil
     end
   end
-  
-  attr_reader :comment
+
+  def text_content
+    @comment
+  end
+
+  attr_writer :comment
   
   private
   
@@ -159,9 +171,9 @@ class CompositeNode < Node
     result = []
     analyse_content
     
-    @sub_nodes.each { |node|
+    @sub_nodes.each do |node|
       result << node if node.match(conditions)
-    }
+    end
     
     result
   end
@@ -169,9 +181,18 @@ class CompositeNode < Node
   def debug_display_sub_nodes
     analyse_content
     puts "all nodes in #{name}"
-    @sub_nodes.each { |node|
+    @sub_nodes.each do |node|
       puts "sub_node:#{node.name}, #{node.attributes[:id]}, #{node.attributes[:style]}"
-    }
+    end
+  end
+
+  def text_content
+    analyse_content
+    all_text = ''
+    @sub_nodes.each do |node|
+      all_text += node.text_content
+    end
+    all_text
   end
 
   attr_writer :all_nodes_supported
@@ -320,7 +341,7 @@ class ContentStack
         return
       end
     end
-    
+
     label_stack.push(label)
   end
   
@@ -331,7 +352,7 @@ class ContentStack
         stack_clone = @content_stack.dup
         @content_stack.push(label)
         inner_stack = []
-        while true do
+        loop do
           in_stack = @content_stack.pop
           break if in_stack.nil?
 
